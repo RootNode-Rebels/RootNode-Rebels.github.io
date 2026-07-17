@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found | RootNode Rebels</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Dynamic Background Elements -->
+    <div class="noise-overlay"></div>
+    <div class="gradient-bg"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar glass">
+        <div class="logo">⚡ RootNode<span>Rebels</span></div>
+        <div class="nav-links">
+            <a href="/">Return Home</a>
+        </div>
+    </nav>
+
+    <!-- 404 Hero Section -->
+    <header class="hero" style="text-align: center;">
+        <div class="hero-content fade-in-up">
+            <h1 class="hero-title" style="font-size: clamp(5rem, 10vw, 8rem); margin-bottom: 0;">404</h1>
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">Node Not Found</h2>
+            <p class="hero-desc" style="max-width: 500px;">The server architecture you are trying to access does not exist or has been relocated.</p>
+            <div class="hero-buttons">
+                <a href="/" class="btn btn-primary">Return to Root Node</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.fade-in-up');
+            fadeElements.forEach(el => {
+                setTimeout(() => el.classList.add('visible'), 100);
+            });
+        });
+    </script>
+</body>
+</html>
