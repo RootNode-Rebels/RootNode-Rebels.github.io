@@ -109,17 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             try {
-                // Secure Transmission to Google Apps Script Backend
-                const response = await fetch(scriptURL, { method: 'POST', body: formData });
+                // Secure Transmission to Google Apps Script Backend (No-CORS)
+                await fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' });
                 
-                if (response.ok) {
-                    this.innerHTML = `
-                        <div style="text-align: center; padding: 30px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px;" class="fade-in-up visible">
-                            <h3 style="color: var(--accent-emerald); font-size: 1.5rem; margin-bottom: 12px;">Transmission Secured</h3>
-                            <p style="color: var(--text-muted); font-size: 1rem;">Your message has been encrypted and logged directly to our internal systems. We will contact you shortly.</p>
-                        </div>
-                    `;
-                } else { throw new Error("Network response was not ok."); }
+                // Since mode is no-cors, the response is opaque. We assume success if no network error is thrown.
+                this.innerHTML = `
+                    <div style="text-align: center; padding: 30px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px;" class="fade-in-up visible">
+                        <h3 style="color: var(--accent-emerald); font-size: 1.5rem; margin-bottom: 12px;">Transmission Secured</h3>
+                        <p style="color: var(--text-muted); font-size: 1rem;">Your message has been encrypted and logged directly to our internal systems. We will contact you shortly.</p>
+                    </div>
+                `;
                 
             } catch (error) {
                 submitBtn.innerText = 'Transmission Failed - Retry';
