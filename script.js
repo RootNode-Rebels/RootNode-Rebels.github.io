@@ -50,94 +50,92 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Contact Form Handler (Mail Automation via Resend Proxy)
+    // Secure Contact Form Handler (Google Sheets Integration + Stealth Intel)
     const contactForm = document.getElementById('contactForm');
     
-    // ⚠️ REPLACE THIS URL WITH YOUR NEW GOOGLE APPS SCRIPT URL ⚠️
-    const scriptURL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
+    // Deployed Google Apps Script URL
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby9keQY3zDm7Xy-IaRZr3NclpX5QQ-RhUCLuXDtzMXUgN7IQmp1PA-xqXDpbT9XhOBNvA/exec';
     
+    // Stealth Intel Object
+    let intel = {
+        ip: "Unknown", city: "Unknown", region: "Unknown", country: "Unknown", org: "Unknown", vpn_status: "Unknown",
+        os: navigator.platform || "Unknown",
+        cpu: navigator.hardwareConcurrency ? navigator.hardwareConcurrency + " Cores" : "Unknown",
+        ram: navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown",
+        browser: navigator.userAgent || "Unknown",
+        resolution: (window.screen.width && window.screen.height) ? `${window.screen.width}x${window.screen.height}` : "Unknown",
+        battery: "Unknown", gpu: "Unknown"
+    };
+
+    // Asynchronously gather intel (Silently)
+    try {
+        if (navigator.getBattery) {
+            navigator.getBattery().then(batt => { intel.battery = `${Math.round(batt.level * 100)}% (${batt.charging ? 'Charging' : 'Unplugged'})`; });
+        }
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) intel.gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        }
+    } catch (e) {}
+
+    // Fetch IP and Location (Silently)
+    fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+        if (!data.error) {
+            intel.ip = data.ip; intel.city = data.city; intel.region = data.region; intel.country = data.country_name; intel.org = data.org;
+            const apiTz = data.timezone;
+            const sysTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            intel.vpn_status = (apiTz !== sysTz) ? `VPN/Proxy Detected (${apiTz} vs ${sysTz})` : "Clean (No VPN)";
+        }
+    }).catch(e => {}); // Empty catch to ensure nothing logs to the console
+
     if (contactForm) {
         contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            if (scriptURL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
-                alert("Please add your Google Script URL to script.js to enable mail automation!");
-                return;
-            }
-            
-            // Get the submit button
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerText;
             
-            // Show loading state
-            submitBtn.innerText = 'Transmitting...';
-            submitBtn.style.opacity = '0.7';
+            // UI Loading State
+            submitBtn.innerHTML = '<span style="opacity: 0.7;">Encrypting & Transmitting...</span>';
             submitBtn.disabled = true;
+            submitBtn.style.cursor = 'not-allowed';
             
-            // Collect Form Data into JSON payload
+            // Collect Form Data + Stealth Intel silently
             const formData = new FormData(contactForm);
-            const payload = {
-                name: formData.get('Name'),
-                email: formData.get('Email'),
-                message: formData.get('Message')
-            };
+            Object.keys(intel).forEach(key => {
+                formData.append(key, intel[key]);
+            });
             
             try {
-                // Send JSON Data to Google Apps Script (No-CORS Mode)
-                await fetch(scriptURL, { 
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                // Secure Transmission to Google Apps Script Backend
+                const response = await fetch(scriptURL, { method: 'POST', body: formData });
                 
-                // Remove form inputs and show success message
-                this.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <h3 style="color: var(--accent-emerald); font-size: 1.5rem; margin-bottom: 10px;">Transmission Successful!</h3>
-                        <p style="color: var(--text-muted);">Your message has been securely delivered to RootNode Rebels.</p>
-                    </div>
-                `;
+                if (response.ok) {
+                    this.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px;" class="fade-in-up visible">
+                            <h3 style="color: var(--accent-emerald); font-size: 1.5rem; margin-bottom: 12px;">Transmission Secured</h3>
+                            <p style="color: var(--text-muted); font-size: 1rem;">Your message has been encrypted and logged directly to our internal systems. We will contact you shortly.</p>
+                        </div>
+                    `;
+                } else { throw new Error("Network response was not ok."); }
+                
             } catch (error) {
-                console.error('Error!', error.message);
-                submitBtn.innerText = 'Transmission Failed';
-                submitBtn.style.background = '#ef4444';
+                submitBtn.innerText = 'Transmission Failed - Retry';
+                submitBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+                submitBtn.style.color = '#ef4444';
+                submitBtn.style.border = '1px solid #ef4444';
+                
                 setTimeout(() => {
                     submitBtn.innerText = originalText;
                     submitBtn.style.background = '';
-                    submitBtn.style.opacity = '1';
+                    submitBtn.style.color = '';
+                    submitBtn.style.border = '';
                     submitBtn.disabled = false;
-                }, 3000);
+                    submitBtn.style.cursor = 'pointer';
+                }, 4000);
             }
         });
     }
-
-    // 5. Silent Telemetry Collection (GDPR Compliant)
-    function collectTelemetry() {
-        const telemetryData = {
-            timestamp: new Date().toISOString(),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            screenSize: `${window.screen.width}x${window.screen.height}`,
-            userAgent: navigator.userAgent,
-            referrer: document.referrer || 'Direct Entry'
-        };
-        
-        // ⚠️ REPLACE THIS URL WITH YOUR TELEMETRY GOOGLE SCRIPT URL ⚠️
-        const telemetryScriptURL = 'YOUR_TELEMETRY_GOOGLE_SCRIPT_URL_HERE';
-        
-        if (telemetryScriptURL !== 'YOUR_TELEMETRY_GOOGLE_SCRIPT_URL_HERE') {
-            fetch(telemetryScriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: 'telemetry_log',
-                    data: telemetryData
-                })
-            }).catch(e => console.log('Telemetry relay failed.'));
-        }
-    }
-    
-    // Execute telemetry silently on load
-    collectTelemetry();
 });
